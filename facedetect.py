@@ -31,8 +31,12 @@ class ViolaJones():
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
             faceROI = frame[y:y+h,x:x+w]
             eyes = self.eye_cascade.detectMultiScale(faceROI)
+            i =0
             for (x2, y2, w2, h2) in eyes:
-                # eye_center = (x + x2 , y + y2)
-                
-                frame = cv2.rectangle(frame, (x + x2 , y + y2),(x + x2 +w2, y + y2+h2) , (255, 0, 0), 2)
+                #TODO get the coordinates of the eyes 
+                               
+                #left corner of the eyes
+                frame = cv2.circle(frame, (x + x2 , (y + y2+h2//2)),2 , (255, 0, 0), -1)
 
+                #right of the eyes
+                frame = cv2.circle(frame, (x + x2+w2 , (y + y2+h2//2)),2 , (255, 0, 0), -1)
