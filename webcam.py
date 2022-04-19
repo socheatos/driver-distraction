@@ -4,7 +4,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import cv2
 from facedetect import ViolaJones
-path = ['haarcascade_frontalface_default.xml','haarcascade_eye_tree_eyeglasses.xml']
+path = ['cascades\haarcascade_frontalface_default.xml','cascades\haarcascade_eye_tree_eyeglasses.xml']
 class MainWindow():
     
     def __init__(self, window, cap):
