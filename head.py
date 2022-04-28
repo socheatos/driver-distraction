@@ -1,7 +1,10 @@
 import cv2
+from cv2 import imwrite
 import dlib
 import utils
 from video import Video
+from calibration import Parameters
+import numpy as np
 
 #TODO: calibration - estimate focal length and face size
 
@@ -10,8 +13,10 @@ face_det = dlib.get_frontal_face_detector()
 landmark = dlib.shape_predictor(path)
 
 class Head(Video):
-    def __init__(self) -> None:
+    def __init__(self,params):
         super().__init__()
+        self.window_title = 'Landmark Detection'
+        self.params = params
 
     def detect_face(self):
         faces = face_det(self.img,0)
@@ -31,6 +36,7 @@ class Head(Video):
             self.detect_features(face)
             self.draw_landmarks()
 
+
             if verbose == True:
                 print(self.face, self.left_eye,self.right_eye,self.mouth)
         
@@ -45,13 +51,15 @@ class Head(Video):
         cv2.circle(self.img,self.mouth,2, (255, 0, 0), -1)
 
 if __name__ == "__main__":
-    vid = Head()
+    parameters = Parameters()
+    vid = Head(parameters)
     while True: 
         vid.get_frame()
         vid.detect_landmarks()
         vid.show_frame()
         if cv2.waitKey(1) & 0xFF == 27:
-                break
+            imwrite('data\calibration_data\head.jpg',vid.img)
+            break
         
     vid.cap.release()
     cv2.destroyAllWindows()

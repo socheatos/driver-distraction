@@ -3,13 +3,14 @@ import cv2
 class Video:
     def __init__(self) -> None:
         self.cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)
+        self.window_title = 'Test'
 
     def get_frame(self):
         self.ret,self.img = self.cap.read()
         self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
         
     def show_frame(self):
-        cv2.imshow('Landmark Detection',self.img)
+        cv2.imshow(self.window_title,self.img)
 
 # if __name__ == "__main__":
 #     vid = Video()
