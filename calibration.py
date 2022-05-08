@@ -2,7 +2,7 @@
 # checkerboard image https://static.wixstatic.com/media/dd11f9_a6f04e762a25471e878762136b992d24~mv2.png/v1/fill/w_1480,h_1485,al_c,q_90/dd11f9_a6f04e762a25471e878762136b992d24~mv2.webp
 # https://docs.opencv.org/3.4/d4/d94/tutorial_camera_calibration.html
 
-from video import Webcam
+from video import Video
 import cv2
 import numpy as np
 from numpy import savetxt
@@ -26,7 +26,7 @@ objectp3d = np.zeros((1, CHECKERBOARD[0]
 objectp3d[0, :, :2] = np.mgrid[0:CHECKERBOARD[0],
                                0:CHECKERBOARD[1]].T.reshape(-1, 2)
 
-class Video(Webcam):
+class Calibration(Video):
     def __init__(self):
         super().__init__()
         self.width = self.cap.get(3)
@@ -139,4 +139,4 @@ class Video(Webcam):
             cv2.destroyAllWindows()
             self.find_params()
 
-# Video().calibrate()
+# Calibration().calibrate()
