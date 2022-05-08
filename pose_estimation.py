@@ -1,4 +1,6 @@
 from statistics import mode
+
+from cv2 import CAP_PROP_FPS
 from video import Video
 from detection import Detection
 from calibration import Calibration
@@ -16,6 +18,27 @@ class Pose():
             self.camera = camera.calibrate()
         except:
             self.camera = camera
+    def isRotationMatrix(self,R) :
+        Rt = np.transpose(R)
+        shouldBeIdentity = np.dot(Rt, R)
+        I = np.identity(3, dtype = R.dtype)
+        n = np.linalg.norm(I - shouldBeIdentity)
+        return n < 1e-6
+ 
+    def rotationMatrixToEulerAngles(self,R) :
+        assert(self.isRotationMatrix(R))
+        sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
+        singular = sy < 1e-6
+        if  not singular :
+            x = math.atan2(R[2,1] , R[2,2])
+            y = math.atan2(-R[2,0], sy)
+            z = math.atan2(R[1,0], R[0,0])
+        else :
+            x = math.atan2(-R[1,2], R[1,1])
+            y = math.atan2(-R[2,0], sy)
+            z = 0
+        return np.array([x, y, z])
+
 
     def draw_axes(self, imgpt, projpt):
         self.camera.img = cv2.line(self.camera.img, imgpt, tuple(
@@ -60,8 +83,11 @@ class Pose():
         self.draw_axes(nose, nose_end_2D)
 
         rotation = rotation.reshape((3,))
-        rotation,_ = cv2.Rodrigues(rotation)        
+        rotation,_ = cv2.Rodrigues(rotation) 
 
+        # angles = self.rotationMatrixToEulerAngles(rotation)       
+
+        # print(rotation)
         angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(rotation)
         self.pitch,self.yaw,self.roll = angles[0], angles[1], angles[2]
 
@@ -69,15 +95,18 @@ class Pose():
         cv2.putText(self.camera.img, "yaw: " + str(np.round(self.yaw,2)), (50, 400), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
         cv2.putText(self.camera.img, "roll: " + str(np.round(self.roll,2)), (50, 425), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
+        return self.pitch, self.yaw,self.roll        
+
 if __name__ == "__main__":
     vid = Video(0)
     detection = Detection(vid)
-    pose = Pose(vid)
+    pose = Pose(vid)   
 
     while True: 
         vid.get_frame()
         detection.detect_landmarks(show='HPE')
-        pose.estimate(detection=detection,allpts=False)
+        pitch,yaw,roll = pose.estimate(detection=detection,allpts=False)
+        
         vid.show_frame()
         if cv2.waitKey(1) & 0xFF == 27:
             break
