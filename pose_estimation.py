@@ -1,3 +1,4 @@
+from statistics import mode
 from video import Video
 from detection import Detection
 from calibration import Calibration
@@ -5,18 +6,26 @@ import cv2
 import numpy as np
 import utils
 import dlib
+import math
 
 
 class Pose():
-    def __init__(self, detection, camera):
-        self.detection = detection
+    def __init__(self, camera):
+        self.axis = np.float32([[200, 0, 0], [0, 200, 0], [0, 0, 200], [0, 0, 0]]).reshape(-1, 3)
         try:
             self.camera = camera.calibrate()
         except:
             self.camera = camera
 
+    def draw_axes(self, imgpt, projpt):
+        self.camera.img = cv2.line(self.camera.img, imgpt, tuple(
+            projpt[0].ravel().astype(int)), (255, 0, 0), 3)
+        self.camera.img = cv2.line(self.camera.img, imgpt, tuple(
+            projpt[1].ravel().astype(int)), (0, 255, 0), 3)
+        self.camera.img = cv2.line(self.camera.img, imgpt, tuple(
+            projpt[2].ravel().astype(int)), (0, 0, 255), 3)
 
-    def estimate(self):
+    def estimate(self,detection,allpts=False):
         font = cv2.FONT_HERSHEY_SIMPLEX 
         self.camera.distortion = np.zeros((4,1))
 
@@ -28,34 +37,47 @@ class Pose():
                                     (150.0, -150.0, -125.0)      # Right mouth corner
                                 ])
 
-        image_points = np.array([self.detection.nose,
-                                self.detection.chin,
-                                self.detection.Leye_corner,
-                                self.detection.Reye_corner,
-                                self.detection.Lmouth_corner,
-                                self.detection.Rmouth_corner], dtype='double')
+        image_points = np.array([detection.nose,
+                                detection.chin,
+                                detection.Leye_corner,
+                                detection.Reye_corner,
+                                detection.Lmouth_corner,
+                                detection.Rmouth_corner], dtype='double')
 
-        ret, rotation_vec, translation = cv2.solvePnP(model_points, image_points,self.camera.intrinsic, 
+        if allpts:
+            model_points, image_points = utils.get_all_68_pts(detection=detection)
+        
+        _, rotation, translation = cv2.solvePnP(model_points, image_points,self.camera.intrinsic, 
                                                     self.camera.distortion, flags=cv2.SOLVEPNP_UPNP)
-        rotation_vec = rotation_vec.reshape((3,))
-        rotation,_ = cv2.Rodrigues(rotation_vec)
+       
+        # refine both rotation and translation 
+        rotation, translation =  cv2.solvePnPRefineLM(model_points, image_points, self.camera.intrinsic,
+                                                        self.camera.distortion, rotation, translation)
+        
+        # make nose the axis
+        nose = int(detection.nose[0]), int(detection.nose[1])
+        nose_end_2D,_ = cv2.projectPoints(self.axis,rotation,translation, self.camera.intrinsic, self.camera.distortion)
+        self.draw_axes(nose, nose_end_2D)
+
+        rotation = rotation.reshape((3,))
+        rotation,_ = cv2.Rodrigues(rotation)        
+
         angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(rotation)
-        self.x,self.y,self.z = angles[0], angles[1], angles[2]
+        self.pitch,self.yaw,self.roll = angles[0], angles[1], angles[2]
 
-        cv2.putText(self.camera.img, "x: " + str(np.round(self.x,2)), (500, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-        cv2.putText(self.camera.img, "y: " + str(np.round(self.y,2)), (500, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-        cv2.putText(self.camera.img, "z: " + str(np.round(self.z,2)), (500, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-
+        cv2.putText(self.camera.img, "pitch: " + str(np.round(self.pitch,2)), (50, 375), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+        cv2.putText(self.camera.img, "yaw: " + str(np.round(self.yaw,2)), (50, 400), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+        cv2.putText(self.camera.img, "roll: " + str(np.round(self.roll,2)), (50, 425), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
 if __name__ == "__main__":
-    vid = Video('test.mp4')
+    vid = Video(0)
     detection = Detection(vid)
-    pose = Pose(detection,vid)
+    pose = Pose(vid)
 
     while True: 
         vid.get_frame()
-        detection.detect_landmarks()
-        pose.estimate()
+        detection.detect_landmarks(show='HPE')
+        pose.estimate(detection=detection,allpts=False)
         vid.show_frame()
         if cv2.waitKey(1) & 0xFF == 27:
             break
