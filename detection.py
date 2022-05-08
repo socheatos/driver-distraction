@@ -24,27 +24,27 @@ class Detection():
 
     def detect_features(self,face):
         gray = cv2.cvtColor(self.video.img, cv2.COLOR_BGR2GRAY)
-        shape = landmark(gray, face)
-        shape = utils.shape_to_np(shape)
+        self.shape = landmark(gray, face)
+        self.shape = utils.shape_to_np(self.shape)
         self.face = ((face.left(), face.top()),(face.right(), face.bottom()))
         
-        self.left_eye = shape[36:42]
-        self.right_eye = shape[42:48] 
-        self.mouth = [shape[48],shape[54],shape[51],shape[62],shape[66],shape[57]]
-        self.nose = shape[30]
-        self.chin = shape[8]
+        self.left_eye = self.shape[36:42]
+        self.right_eye = self.shape[42:48] 
+        self.mouth = [self.shape[48],self.shape[54],self.shape[51],self.shape[62],self.shape[66],self.shape[57]]
+        self.nose = self.shape[30]
+        self.chin = self.shape[8]
 
         self.Leye_corner = self.left_eye[0]
-        self.Reye_corner = self.right_eye[4]
+        self.Reye_corner = self.right_eye[3]
         self.Lmouth_corner = self.mouth[0]
         self.Rmouth_corner = self.mouth[1]
-        return shape
+        
 
     def detect_landmarks(self,show='HPE'):
         faces = self.detect_face()
         for face in faces:
-            shape = self.detect_features(face)
-            self.draw_landmarks(shape,show)
+            self.detect_features(face)
+            self.draw_landmarks(self.shape,show)
         
         
     def draw_landmarks(self,shape,show='HPE'):
