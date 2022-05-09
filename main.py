@@ -21,7 +21,7 @@ def main():
         cv2.putText(vid.img, "Frame: " + str(count_frame), (50, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         cv2
         detection.detect_landmarks(show='HPE')
-        pitch, yaw, roll = pose.estimate(detection=detection, camera=vid,allpts=True)
+        pitch, yaw, roll = pose.estimate(detection=detection,allpts=True)
         distracted = scorer.evaluate(pitch, yaw, roll)
         # print(distracted)
         if distracted:

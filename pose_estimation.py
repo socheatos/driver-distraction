@@ -11,6 +11,7 @@ class Pose():
     def __init__(self):
         self.axis = np.float32([[200, 0, 0], [0, 200, 0], [0, 0, 200], [0, 0, 0]]).reshape(-1, 3)
 
+
     def draw_axes(self,imgpt, projpt,camera):
         camera.img = cv2.line(camera.img, imgpt, tuple(
             projpt[0].ravel().astype(int)), (255, 0, 0), 3)
@@ -19,8 +20,9 @@ class Pose():
         camera.img = cv2.line(camera.img, imgpt, tuple(
             projpt[2].ravel().astype(int)), (0, 0, 255), 3)
 
-    def estimate(self,detection,camera,allpts=False):
+    def estimate(self,detection,allpts=False):
         font = cv2.FONT_HERSHEY_SIMPLEX 
+        camera = detection.video
         camera.distortion = np.zeros((4,1))
 
         model_points = np.array([   (0.0, 0.0, 0.0),             # Nose tip
