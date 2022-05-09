@@ -1,6 +1,3 @@
-from statistics import mode
-
-from cv2 import CAP_PROP_FPS
 from video import Video
 from detection import Detection
 from calibration import Calibration
@@ -49,15 +46,16 @@ class Pose():
                                                     camera.distortion, flags=cv2.SOLVEPNP_UPNP)
        
         # refines both rotation and translation 
-        rotation, translation =  cv2.solvePnPRefineLM(model_points, image_points, camera.intrinsic,
+        if not allpts:
+            rotation, translation =  cv2.solvePnPRefineLM(model_points, image_points, camera.intrinsic,
                                                         camera.distortion, rotation, translation)
         
-        # nose point on image plane
-        nose = int(detection.nose[0]), int(detection.nose[1])
-        # computes 3 3 projection axis form the nose using the parameters we calculated
-        nose_end_2D,_ = cv2.projectPoints(self.axis,rotation,translation, 
-                                        camera.intrinsic, camera.distortion)
-        self.draw_axes(nose, nose_end_2D,camera)
+            # nose point on image plane
+            nose = int(detection.nose[0]), int(detection.nose[1])
+            # computes 3 3 projection axis form the nose using the parameters we calculated
+            nose_end_2D,_ = cv2.projectPoints(self.axis,rotation,translation, 
+                                            camera.intrinsic, camera.distortion)
+            self.draw_axes(nose, nose_end_2D,camera)
         
         # get 3x3 rotation matrix from rotation vector
         rotation = rotation.reshape((3,))
