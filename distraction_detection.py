@@ -6,6 +6,7 @@ import cv2
 
 class DistractionScore():
     def __init__(self,fps_lim, ROLL_THRESH, PITCH_THRESH , YAW_THRESH, POSE_TIME_THRESH = 4.0):
+        
         self.fps = fps_lim          # upper frame rate of video stream considered
         self.delta_time_frame = 1/fps_lim
         self.prev_time = 0
@@ -24,7 +25,7 @@ class DistractionScore():
         if self.pose_counter >= self.pose_act_tresh:
             distracted=True
         
-        if ((roll > self.ROLL_THRESH) or (roll < -self.ROLL_THRESH*0.5) or (abs(pitch) > self.PITCH_THRESH) or (abs(yaw) > self.YAW_THRESH)):
+        if ((abs(roll) < self.ROLL_THRESH) or (abs(pitch) > self.PITCH_THRESH) or (abs(yaw) > self.YAW_THRESH)):
             if not distracted:
                 self.pose_counter += 1
                 
