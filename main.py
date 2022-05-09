@@ -1,5 +1,5 @@
 from video import Video
-from detection import Detection
+from detection import Detection, Landmarks
 from pose_estimation import Pose
 from distraction_detection import DistractionScore
 import cv2, time
@@ -13,6 +13,10 @@ def main():
 
     distracted_count = 0
     count_frame = 0
+
+    intrinsic = vid.intrinsic
+
+
     while True: 
         count_frame+=1
         fps = vid.vid.get(cv2.CAP_PROP_FPS)
@@ -20,8 +24,9 @@ def main():
     
         cv2.putText(vid.img, "Frame: " + str(count_frame), (50, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         cv2
-        detection.detect_landmarks(show='HPE')
-        pitch, yaw, roll = pose.estimate(detection=detection,allpts=True)
+        shape, face = detection.detect_landmarks(show='HPE')
+        landmarks = Landmarks(shape, face)
+        pitch, yaw, roll = pose.estimate(frame=vid.img,detection=landmarks,intrinsic=intrinsic,allpts=True)
         distracted = scorer.evaluate(pitch, yaw, roll)
         # print(distracted)
         if distracted:

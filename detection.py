@@ -4,12 +4,30 @@ import dlib
 import utils
 from video import Video
 import numpy as np
+from copy import deepcopy
 
 
 
 path = 'cascades\shape_predictor_68_face_landmarks.dat'
 face_det = dlib.get_frontal_face_detector()
 landmark = dlib.shape_predictor(path)
+
+class Landmarks():
+    def __init__(self, shape, face):
+        self.shape = shape
+        self.face = face
+        
+        self.left_eye = self.shape[36:42]
+        self.right_eye = self.shape[42:48] 
+        self.mouth = [self.shape[48],self.shape[54],self.shape[51],self.shape[62],self.shape[66],self.shape[57]]
+        self.nose = self.shape[30]
+        self.chin = self.shape[8]
+
+        self.Leye_corner = self.left_eye[0]
+        self.Reye_corner = self.right_eye[3]
+        self.Lmouth_corner = self.mouth[0]
+        self.Rmouth_corner = self.mouth[1]
+
 
 class Detection():
     def __init__(self,video):
@@ -26,6 +44,9 @@ class Detection():
         gray = cv2.cvtColor(self.video.img, cv2.COLOR_BGR2GRAY)
         self.shape = landmark(gray, face)
         self.shape = utils.shape_to_np(self.shape)
+        landmarks = deepcopy(self.shape)
+
+
         self.face = ((face.left(), face.top()),(face.right(), face.bottom()))
         
         self.left_eye = self.shape[36:42]
@@ -38,13 +59,18 @@ class Detection():
         self.Reye_corner = self.right_eye[3]
         self.Lmouth_corner = self.mouth[0]
         self.Rmouth_corner = self.mouth[1]
+       
+        
+        return landmarks, self.face
         
 
     def detect_landmarks(self,show='HPE'):
         faces = self.detect_face()
         for face in faces:
-            self.detect_features(face)
+            landmarks, face = self.detect_features(face)
             self.draw_landmarks(self.shape,show)
+
+            return landmarks,face
         
         
     def draw_landmarks(self,shape,show='HPE'):
@@ -80,11 +106,12 @@ class Detection():
     
 
 if __name__ == "__main__":
-    video = Video('test.mp4')
+    video = Video(0)
     detector = Detection(video)
     while True: 
         video.get_frame()
-        detector.detect_landmarks(show='GAZE')
+        l,f = detector.detect_landmarks(show='GAZE')
+        print(type(l))
         video.show_frame()
         if cv2.waitKey(1) & 0xFF == 27:
             break        
