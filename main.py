@@ -4,9 +4,9 @@ from pose_estimation import Pose
 from distraction_detection import DistractionScore
 import cv2, time
 
-def main():
+def main(cap):
     # instantiate our objects
-    vid = Video(0)
+    vid = Video(cap)
     detection = Detection(vid)
     pose = Pose()   
     scorer = DistractionScore(PITCH_THRESH=5,YAW_THRESH=5, ROLL_THRESH=20, POSE_FRAME_THRESH=50.0)
@@ -32,7 +32,7 @@ def main():
         if distracted:
             distracted_count+=1
         elif distracted_count > 0: 
-            distracted_count-=fps
+            distracted_count-=fps/2
         if distracted_count>50:
             cv2.putText(vid.img, "DISTRACTED", (45, 55), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 5)
         
@@ -44,4 +44,4 @@ def main():
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    main()
+    main(cap=0)
