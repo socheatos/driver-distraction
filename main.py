@@ -23,18 +23,20 @@ def main(cap):
         vid.get_frame()
     
         cv2.putText(vid.img, "Frame: " + str(count_frame), (50, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        cv2
-        shape, face = detection.detect_landmarks(show='HPE')
-        landmarks = Landmarks(shape, face)
-        pitch, yaw, roll = pose.estimate(frame=vid.img,detection=landmarks,intrinsic=intrinsic,allpts=True)
-        distracted = scorer.evaluate(pitch, yaw, roll)
-        # print(distracted)
-        if distracted:
-            distracted_count+=1
-        elif distracted_count > 0: 
-            distracted_count-=fps/2
-        if distracted_count>50:
-            cv2.putText(vid.img, "DISTRACTED", (45, 55), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 5)
+        try:
+            shape, face = detection.detect_landmarks(show='HPE')
+            landmarks = Landmarks(shape, face)
+            pitch, yaw, roll = pose.estimate(frame=vid.img,detection=landmarks,intrinsic=intrinsic,allpts=True)
+            distracted = scorer.evaluate(pitch, yaw, roll)
+            # print(distracted)
+            if distracted:
+                distracted_count+=1
+            elif distracted_count > 0: 
+                distracted_count-=fps/2
+            if distracted_count>50:
+                cv2.putText(vid.img, "DISTRACTED", (45, 55), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 5)
+        except:
+            vid.show_frame()
         
         vid.show_frame()
         if cv2.waitKey(1) & 0xFF == 27:
