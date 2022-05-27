@@ -1,9 +1,6 @@
 import cv2
-from cv2 import imwrite
 import dlib
 import utils
-from video import Video
-import numpy as np
 from copy import deepcopy
 
 
@@ -66,14 +63,16 @@ class Detection():
 
     def detect_landmarks(self,show='HPE'):
         faces = self.detect_face()
-        for face in faces:
-            landmarks, face = self.detect_features(face)
-            self.draw_landmarks(self.shape,show)
+        if faces:
+            for face in faces:
+                landmarks, face = self.detect_features(face)
+                self.draw_landmarks(self.shape,show)
 
-            return landmarks,face
+                return landmarks,face
         
         
-    def draw_landmarks(self,shape,show='HPE'):
+        
+    def draw_landmarks(self,shape,show):
         cv2.rectangle(self.video.img,self.face[0],
                                self.face[1], (0, 255, 0), 2)
         if show=='HPE':
@@ -105,16 +104,16 @@ class Detection():
         cv2.destroyAllWindows()
     
 
-if __name__ == "__main__":
-    video = Video(0)
-    detector = Detection(video)
-    while True: 
-        video.get_frame()
-        l,f = detector.detect_landmarks(show='GAZE')
-        print(type(l))
-        video.show_frame()
-        if cv2.waitKey(1) & 0xFF == 27:
-            break        
-    video.vid.release()
-    cv2.destroyAllWindows()
+# if __name__ == "__main__":
+#     video = Video(0)
+#     detector = Detection(video)
+#     while True: 
+#         video.get_frame()
+#         l,f = detector.detect_landmarks(show='GAZE')
+#         print(type(l))
+#         video.show_frame()
+#         if cv2.waitKey(1) & 0xFF == 27:
+#             break        
+#     video.vid.release()
+#     cv2.destroyAllWindows()
 
